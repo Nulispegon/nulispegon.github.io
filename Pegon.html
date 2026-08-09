@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translator Latin ke Pegon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .label {
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-size: 0.9em;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+        }
+        .arabic-display {
+            font-family: 'Amiri', serif;
+            font-size: 3.5em;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef2f5;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+            direction: rtl;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        button {
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1em;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-copy {
+            background-color: #2ecc71;
+            flex: 1;
+        }
+        .btn-copy:hover {
+            background-color: #27ae60;
+        }
+        .btn-clear {
+            background-color: #e74c3c;
+            flex: 1;
+        }
+        .btn-clear:hover {
+            background-color: #c0392b;
+        }
+        .instructions {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 15px;
+            text-align: left;
+            line-height: 1.5;
+            background: #fdfdfd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Translator Live Latin ke Pegon</h1>
+        
+        <span class="label">Ketik Teks Latin di sini:</span>
+        <textarea id="latinInput" placeholder="Contoh: adam, suka, toto, atau sopo..." rows="3"></textarea>
+        
+        <span class="label">Hasil Pegon:</span>
+        <div class="arabic-display" id="display">...</div>
+
+        <div class="btn-group">
+            <button class="btn-copy" onclick="copyText()">Salin Hasil Pegon</button>
+            <button class="btn-clear" onclick="clearText()">Hapus</button>
+        </div>
+        
+        <div class="instructions">
+            <strong>Aturan Karakter Khusus:</strong>
+            <ul style="margin-top: 5px; padding-left: 20px;">
+                <li><strong>G:</strong> Menggunakan Ghain (غ).</li>
+                <li><strong>V, F, P:</strong> Menggunakan Fa (ف).</li>
+                <li><strong>S & T:</strong> Memakai س & ت, tetapi <strong>so</strong> = صَا dan <strong>to</strong> = طَا.</li>
+                <li><strong>Vokal Awal:</strong> A (أ), I (إي), U (أُو), O (أَوْ).</li>
+                <li><strong>Vokal Sambung:</strong> a (ا), i (يْ), u (وْ), e (ٓ), o (َوْ).</li>
+                <li>Konsonan mati otomatis diberikan harokat sukun.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const inputField = document.getElementById('latinInput');
+        const displayField = document.getElementById('display');
+
+        // Peta Konsonan Standar & Khusus
+        // g menjadi غ, serta v, f, p menjadi ف
+        const consMap = {
+            'ng':'ڠ', 'ny':'ۑ', 'sy':'ش', 'kh':'خ', 'ch':'چ', 'th':'ث', 'dh':'ض', 'sh':'ص',
+            'b':'ب', 'c':'څ', 'd':'د', 'f':'ف', 'g':'غ', 'h':'ه', 'j':'ج', 'k':'ك', 'l':'ل',
+            'm':'م', 'n':'ن', 'p':'ف', 'q':'ق', 'r':'ر', 's':'س', 't':'ت', 'v':'ف', 'w':'و',
+            'x':'كس', 'y':'ي', 'z':'ز'
+        };
+
+        const isVowel = (c) => ['a','i','u','e','o'].includes(c);
+
+        function toPegon(text) {
+            text = text.toLowerCase();
+            let result = "";
+            let i = 0;
+
+            while (i < text.length) {
+                let char = text[i];
+                
+                // Abaikan karakter non-alfabet (seperti spasi dan tanda baca)
+                if (!/[a-z]/.test(char)) {
+                    result += char;
+                    i++;
+                    continue;
+                }
+
+                // Cek apakah huruf berada di awal kata
+                let prevChar = i > 0 ? text[i-1] : " ";
+                let isInitial = !/[a-z]/.test(prevChar); 
+                let next = text[i+1] || "";
+                let twoChars = char + next;
+
+                // 1. Pengecualian Khusus Syllable "so" dan "to" (Dilengkapi Harakat Fathah)
+                if (twoChars === 'so') {
+                    result += 'صَا';
+                    i += 2; // Lewati 'o' karena sudah diproses
+                    continue;
+                }
+                if (twoChars === 'to') {
+                    result += 'طَا';
+                    i += 2; // Lewati 'o' karena sudah diproses
+                    continue;
+                }
+
+                // 2. Logika Huruf Vokal di Awal Kata
+                if (isInitial && isVowel(char)) {
+                    if (char === 'a') result += 'أ';
+                    else if (char === 'i') result += 'إي';
+                    else if (char === 'u') result += 'أُو';
+                    else if (char === 'e') result += 'أٓ'; 
+                    else if (char === 'o') result += 'أَوْ';
+                    i++;
+                    continue;
+                }
+
+                // 3. Logika Konsonan Ganda (ng, ny, sy, dsb)
+                if (consMap[twoChars]) {
+                    result += consMap[twoChars];
+                    let nextAfter = text[i+2] || "";
+                    // Beri sukun jika tidak diikuti vokal
+                    if (!isVowel(nextAfter) && /[a-z]/.test(nextAfter) || nextAfter === "" || nextAfter === " ") {
+                        result += 'ْ'; 
+                    }
+                    i += 2;
+                    continue;
+                }
+
+                // 4. Logika Konsonan Tunggal
+                if (consMap[char]) {
+                    result += consMap[char];
+                    // Beri sukun jika tidak diikuti vokal (Konsonan mati)
+                    if (!isVowel(next) && /[a-z]/.test(next) || next === "" || next === " ") {
+                        result += 'ْ';
+                    }
+                    i++;
+                    continue;
+                }
+
+                // 5. Logika Vokal di Tengah/Akhir Kata (Sambungan)
+                if (isVowel(char)) {
+                    if (char === 'a') result += 'َا'; // Fathah + Alif untuk sambungan
+                    else if (char === 'i') result += 'ِيْ';
+                    else if (char === 'u') result += 'ُوْ';
+                    else if (char === 'e') result += 'ٓ'; // Maddah
+                    else if (char === 'o') result += 'َوْ'; 
+                    i++;
+                    continue;
+                }
+                
+                // Fallback jika ada karakter tak terduga
+                result += char;
+                i++;
+            }
+            return result;
+        }
+
+        // Live transliteration event
+        inputField.addEventListener('input', function() {
+            const pegonText = toPegon(this.value);
+            displayField.textContent = pegonText || '...';
+        });
+
+        function clearText() {
+            inputField.value = '';
+            displayField.textContent = '...';
+            inputField.focus();
+        }
+
+        function copyText() {
+            const textToCopy = displayField.textContent;
+            if(!textToCopy || textToCopy === '...') return;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Teks Pegon berhasil disalin!\n' + textToCopy);
+            }).catch(err => {
+                alert('Gagal menyalin teks.');
+            });
+        }
+    </script>
+</body>
+</html>
