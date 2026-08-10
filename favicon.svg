@@ -1,0 +1,22 @@
+<!-- 2. Buat file baru dengan nama favicon.svg, lalu isi dengan kode bernuansa Kitab Kuning ini: -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <!-- Latar Belakang Kertas Kitab Kuning -->
+    <rect width="512" height="512" rx="110" fill="#FCEEA7" />
+    
+    <!-- Garis Tepi (Pigura Kitab) -->
+    <rect x="32" y="32" width="448" height="448" rx="80" fill="none" stroke="#5C3A21" stroke-width="20" opacity="0.8"/>
+
+    <!-- 3 Titik Belah Ketupat (Khas Tinta Khat Pegon) -->
+    <polygon points="256,110 300,154 256,198 212,154" fill="#5C3A21"/>
+    <polygon points="190,190 234,234 190,278 146,234" fill="#5C3A21"/>
+    <polygon points="322,190 366,234 322,278 278,234" fill="#5C3A21"/>
+
+    <!-- Tarikan Kuas/Pena melengkung (Nuansa huruf Arab/Pegon) -->
+    <path d="M 420 280 
+             C 420 250, 380 250, 370 280 
+             C 350 340, 240 370, 150 310 
+             C 120 290, 80 320, 100 360 
+             C 170 440, 350 440, 430 330 
+             C 440 315, 430 295, 420 280 Z" 
+          fill="#5C3A21"/>
+</svg>
